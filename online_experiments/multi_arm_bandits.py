@@ -23,6 +23,7 @@ class MAB(ABC):
         self.n_trials = n_trials
         self.selected_arms = np.ones(n_trials)*-1
         self.rewards_list = {}
+        self.observed_rewards = []
 
         for j in range(n_arms):
             self.rewards_list[j] = [0]
@@ -106,7 +107,9 @@ class EpsGreedy(MAB):
                 best_arm = np.random.choice(self.n_arms)
 
             self.selected_arms[t] = best_arm
-            self.rewards_list[best_arm] += arms_list.arms_reward(selected_arm=best_arm)
+            reward = arms_list.arms_reward(selected_arm=best_arm)
+            self.observed_rewards.append(reward)
+            self.rewards_list[best_arm] += reward
 
         return self.rewards_list
 
@@ -153,7 +156,9 @@ class UCB(MAB):
             else:
                 best_arm = self.get_best_arm()
             self.selected_arms[t] = best_arm
-            self.rewards_list[best_arm] += arms_list.arms_reward(selected_arm=best_arm)
+            reward = arms_list.arms_reward(selected_arm=best_arm)
+            self.observed_rewards.append(reward)
+            self.rewards_list[best_arm] += reward
 
             self.t += 1
 
@@ -183,6 +188,7 @@ class ThompsonSampling(MAB):
             self.selected_arms[t] = best_arm
 
             reward = arms_list.arms_reward(selected_arm=best_arm)
+            self.observed_rewards.append(reward)
             self.rewards_list[best_arm] += reward
             self.arms_distribution[best_arm].update_distribution(reward)
 
