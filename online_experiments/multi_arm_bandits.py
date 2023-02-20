@@ -77,6 +77,25 @@ class ArmEmpiricalDistribution:
         return self.a/(self.a + self.b)
 
 
+class RandomAssignment(MAB):
+    'random assignment as it happens in an online experiment'
+
+    def run_test(
+        self,
+        arms_list: ArmsList
+    ) -> Dict[int, List]:
+        np.random.seed(100)
+        for t in range(self.n_trials):
+            best_arm = np.random.choice(self.n_arms)
+
+            self.selected_arms[t] = best_arm
+            reward = arms_list.arms_reward(selected_arm=best_arm)
+            self.observed_rewards.append(reward)
+            self.rewards_list[best_arm] += reward
+
+        return self.rewards_list
+
+
 class EpsGreedy(MAB):
     '''
     Implementation of epsilon greedy algo for arm selection

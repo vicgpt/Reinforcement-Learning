@@ -39,9 +39,10 @@ class ArmsList(List[Arm]):
                 best_arm = arm
         return best_arm
 
-    #TODO: add a function to track the selection of different arms over time
-
-
-# class Environment():
-
-#     def __init_(self, n_arms: int)
+    def get_best_arm_idx(self) -> int:
+        'return the index of best arm in the environment'
+        best_arm_idx = 0
+        for idx in range(self.n_arms):
+            if self.arms[idx].mu > self.arms[best_arm_idx].mu:
+                best_arm_idx = idx
+        return best_arm_idx

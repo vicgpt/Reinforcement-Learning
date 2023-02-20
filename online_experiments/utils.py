@@ -8,6 +8,7 @@ support functions for online_experiments notebook -
 from typing import Dict, List
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from multi_arm_bandits import ArmsList, MAB
 
 def plot_rewards(
@@ -42,7 +43,8 @@ def get_regret(
 ):
     'calculating regret up to t'
     expected_reward = [arms_list.get_best_arm().mu]*n_trials
-    regret = [np.abs(expected_reward[i] - np.sum(observed_rewards[:i+1])/(i+1)) for i in range(n_trials)]
+    regret = [(
+        expected_reward[i] - np.sum(observed_rewards[:i+1])/(i+1)) for i in range(n_trials)]
 
     return regret
 
@@ -62,4 +64,48 @@ def plot_regret(
     plt.legend()
     plt.xlabel('t')
     plt.ylabel('regret')
+    plt.show()
+
+
+def plot_clicks_received(
+    n_trials: int,
+    mab_list: Dict[str, MAB],
+    arms_list: ArmsList
+    ) -> None:
+    'plotting clicks from selecting the best arm vs different mab approaches'
+
+    for mab_name, mab in mab_list.items():
+        reward = pd.DataFrame(mab.observed_rewards)
+        plt.plot(reward.cumsum(), label=mab_name)
+
+    mean_ctr = arms_list.get_best_arm().mu
+    plt.plot(mean_ctr*np.arange(n_trials), label='best arm')
+    plt.xlabel('Number of trials')
+    plt.ylabel('Number of clicks')
+    plt.legend()
+    plt.show()
+
+
+def plot_optimal_arm_selection(
+    n_trials: int,
+    mab_list: Dict[str, MAB],
+    arms_list: ArmsList
+    ) -> None:
+    'percentage of time best arm is selected by the algo'
+
+    optimal_arm_selection_df = pd.DataFrame(columns=['best_arm'])
+    optimal_arm_selection_df['best_arm'] = [arms_list.get_best_arm_idx()]*n_trials
+
+    for mab_name, mab in mab_list.items():
+        optimal_arm_selection_df[f'selected_arms_{mab_name}'] = mab.selected_arms
+        optimal_arm_selection_df[f'optimal_selection_{mab_name}'] = (
+            optimal_arm_selection_df['best_arm'] ==
+            optimal_arm_selection_df[f'selected_arms_{mab_name}']
+        ).cumsum()/np.arange(1, n_trials+1)
+
+        plt.plot(optimal_arm_selection_df[f'optimal_selection_{mab_name}'], label=mab_name)
+
+    plt.xlabel('Number of trials')
+    plt.ylabel('Optimal selection %')
+    plt.legend()
     plt.show()
